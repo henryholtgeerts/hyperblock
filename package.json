@@ -1,5 +1,5 @@
 {
-  "name": "hyperblock-cgb-guten-block",
+  "name": "hyperblock",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -8,6 +8,7 @@
     "eject": "cgb-scripts eject"
   },
   "dependencies": {
-    "cgb-scripts": "1.23.1"
+    "cgb-scripts": "1.23.1",
+    "react-moveable": "^0.27.7"
   }
 }

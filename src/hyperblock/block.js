@@ -5,12 +5,18 @@
  * Simple block, renders and saves the same content without any interactivity.
  */
 
+import Moveable from 'react-moveable';
+
 //  Import CSS.
 import './editor.scss';
 import './style.scss';
 
 const { __ } = wp.i18n; // Import __() from wp.i18n
 const { registerBlockType } = wp.blocks; // Import registerBlockType() from wp.blocks
+const { Inserter, InnerBlocks, useBlockProps, BlockControls, InspectorControls } = wp.blockEditor;
+const { ToolbarButton, Panel, PanelBody, PanelRow, ToggleControl } = wp.components;
+const { useDispatch, useSelect } = wp.data;
+const { useEffect, useState, Fragment } = wp.element;
 
 /**
  * Register: aa Gutenberg Block.
@@ -48,22 +54,113 @@ registerBlockType( 'hyper/hyperblock', {
 	 * @returns {Mixed} JSX Component.
 	 */
 	edit: ( props ) => {
-		// Creates a <p class='wp-block-cgb-block-hyperblock'></p>.
+
+		const [targetNode, setTargetNode] = useState(null);
+
+		const { innerBlocks, blocks, selectedBlock } = useSelect(select => ({
+			innerBlocks: select('core/block-editor').getBlocks(props.clientId),
+			blocks: select('core/block-editor').getBlocks(),
+			selectedBlock: select('core/block-editor').getBlock( select('core/block-editor').getBlockSelectionStart(props.clientId) )
+		}));
+
+		useEffect(() => {
+			document.querySelector('.popover-slot').style = null;
+			if ( selectedBlock && selectedBlock.name === 'hyper/hyperchild' ) {
+				document.querySelector('.popover-slot').style.display = 'none';
+			}
+		}, [selectedBlock])
+
+		const ALLOWED_BLOCKS = [ 'hyper/hyperchild' ];
+
 		return (
-			<div className={ props.className }>
-				<p>— Hello from the backend.</p>
-				<p>
-					CGB BLOCK: <code>hyperblock</code> is a new Gutenberg block
-				</p>
-				<p>
-					It was created via{ ' ' }
-					<code>
-						<a href="https://github.com/ahmadawais/create-guten-block">
-							create-guten-block
-						</a>
-					</code>.
-				</p>
-			</div>
+			<Fragment>
+				<BlockControls>
+					<Inserter
+						rootClientId={ props.clientId }
+						renderToggle={ ( { onToggle, disabled } ) => (
+							<ToolbarButton
+								onClick={onToggle}
+								disabled={ disabled }
+								label="Add a Block"
+								icon="plus"
+							/>
+						) }
+						isAppender
+					/>
+				</BlockControls>
+				<div className={ props.className }>
+					<Moveable
+						target={innerBlocks.includes(selectedBlock) && document.querySelector(`[data-block="${selectedBlock.clientId}"] > div`)}
+						container={document.querySelector(`[data-block="${props.clientId}"] > div`)}
+
+						draggable={true}
+						onDrag={({
+							target,
+							transform,
+						}) => {
+							target.style.transform = transform;
+						}}
+
+						// resizable={true}
+						// onResize={({
+						// 	delta,
+						// 	target,
+						// 	width,
+						// 	height
+						// }) => {
+						// 	delta[0] && (target.style.width = `${width}px`);
+						// 	delta[1] && (target.style.height = `${height}px`);
+						// }}
+
+						scalable={true}
+						throttleScale={0}
+						onScale={({
+							target,
+							transform
+						}) => {
+							target.style.transform = transform;
+						}}
+
+						rotatable={true}
+						throttleRotate={0}
+						onRotate={({
+							target,
+							transform
+						}) => {
+							target.style.transform = transform;
+						}}
+
+
+						// warpable={true}
+						// onWarpStart={({ target, clientX, clientY }) => {
+						// 	if ( typeof target.matrix !== 'array' ) {
+						// 		target.matrix = [
+						// 			1, 0, 0, 0,
+						// 			0, 1, 0, 0,
+						// 			0, 0, 1, 0,
+						// 			0, 0, 0, 1,
+						// 		];
+						// 	}
+						// }}
+						// onWarp={({
+						// 	target,
+						// 	clientX,
+						// 	clientY,
+						// 	delta,
+						// 	dist,
+						// 	multiply,
+						// 	transform,
+						// }) => {
+						// 	target.matrix = multiply(target.matrix, delta);
+						// 	target.style.transform = `matrix3d(${target.matrix.join(",")})`;
+						// }}
+					/>
+					<InnerBlocks
+						allowedBlocks={ ALLOWED_BLOCKS }
+						renderAppender={false}
+					/>
+				</div>
+			</Fragment>
 		);
 	},
 
@@ -81,18 +178,7 @@ registerBlockType( 'hyper/hyperblock', {
 	save: ( props ) => {
 		return (
 			<div className={ props.className }>
-				<p>— Hello from the frontend.</p>
-				<p>
-					CGB BLOCK: <code>hyperblock</code> is a new Gutenberg block.
-				</p>
-				<p>
-					It was created via{ ' ' }
-					<code>
-						<a href="https://github.com/ahmadawais/create-guten-block">
-							create-guten-block
-						</a>
-					</code>.
-				</p>
+				<InnerBlocks.Content/>
 			</div>
 		);
 	},

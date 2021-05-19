@@ -51,18 +51,8 @@ registerBlockType( 'hyper/hyperchild', {
 		// Creates a <p class='wp-block-cgb-block-hyperblock'></p>.
 		return (
 			<div className={ props.className }>
-				<p>— Hello from the backend.</p>
-				<p>
-					CGB BLOCK: <code>hyperblock</code> is a new Gutenberg block
-				</p>
-				<p>
-					It was created via{ ' ' }
-					<code>
-						<a href="https://github.com/ahmadawais/create-guten-block">
-							create-guten-block
-						</a>
-					</code>.
-				</p>
+				<div className="hyper-hyperchild__overlay"/>
+				<h2>Hyperchild</h2>
 			</div>
 		);
 	},
