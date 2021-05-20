@@ -11,6 +11,9 @@ import './style.scss';
 
 const { __ } = wp.i18n; // Import __() from wp.i18n
 const { registerBlockType } = wp.blocks; // Import registerBlockType() from wp.blocks
+const { Inserter, InnerBlocks, useBlockProps, BlockControls, InspectorControls } = wp.blockEditor;
+const { useDispatch, useSelect } = wp.data;
+const { useEffect, useRef, useState } = wp.element;
 
 /**
  * Register: aa Gutenberg Block.
@@ -48,11 +51,50 @@ registerBlockType( 'hyper/hyperchild', {
 	 * @returns {Mixed} JSX Component.
 	 */
 	edit: ( props ) => {
-		// Creates a <p class='wp-block-cgb-block-hyperblock'></p>.
+
+		const dispatch = useDispatch();
+
+		const contentUnlocked = innerBlocks && innerBlocks[0] && innerBlocks[0].clientId == selectedBlock.clientId;
+
+		const overlayRef = useRef();
+
+		const { innerBlocks, blocks, selectedBlock } = useSelect(select => ({
+			innerBlocks: select('core/block-editor').getBlocks(props.clientId),
+			blocks: select('core/block-editor').getBlocks(),
+			selectedBlock: select('core/block-editor').getBlock( select('core/block-editor').getBlockSelectionStart(props.clientId) )
+		}));
+
+		useEffect(() => {
+			const handleDblClick = (e) => {
+				dispatch( 'core/block-editor' ).selectBlock( innerBlocks[0].clientId )
+			}
+			overlayRef.current && overlayRef.current.addEventListener('dblclick', handleDblClick)
+			return function cleanup () {
+				overlayRef.current && overlayRef.current.removeEventListener('dblclick', handleDblClick)
+			}
+		}, [overlayRef, innerBlocks]);
+
+		const TEMPLATE = [
+			[ 'core/image' ],
+		];
+
 		return (
 			<div className={ props.className }>
-				<div className="hyper-hyperchild__overlay"/>
-				<h2>Hyperchild</h2>
+				<div 
+					className="hyper-hyperchild__overlay" 
+					ref={overlayRef} 
+					style={{
+						display: innerBlocks && selectedBlock && innerBlocks[0] && innerBlocks[0].clientId == selectedBlock.clientId ? 'none' : 'block'
+					}} 
+				/>
+				<InnerBlocks
+					style={{
+						padding: 0, 
+						margin: 0
+					}}
+					template={TEMPLATE}
+					renderAppender={false}
+				/>
 			</div>
 		);
 	},
@@ -71,18 +113,7 @@ registerBlockType( 'hyper/hyperchild', {
 	save: ( props ) => {
 		return (
 			<div className={ props.className }>
-				<p>— Hello from the frontend.</p>
-				<p>
-					CGB BLOCK: <code>hyperblock</code> is a new Gutenberg block.
-				</p>
-				<p>
-					It was created via{ ' ' }
-					<code>
-						<a href="https://github.com/ahmadawais/create-guten-block">
-							create-guten-block
-						</a>
-					</code>.
-				</p>
+				<InnerBlocks.Content/>
 			</div>
 		);
 	},

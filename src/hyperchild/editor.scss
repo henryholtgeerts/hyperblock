@@ -6,12 +6,8 @@
  */
 
 .wp-block-hyper-hyperchild  {
-  background: rgb(157, 0, 255);
-  border: 0.2rem solid $black;
-  color: $black;
-  margin: 0 auto;
-  max-width: 740px;
-  padding: 2rem;
+  margin: 0;
+  padding: 0;
   position: relative;
   pointer-events: auto;
 }
@@ -19,9 +15,12 @@
 [data-type="hyper/hyperchild"] {
   position: absolute !important;
   pointer-events: none !important;
+  margin: 0 !important;
 
-  :focus {
-    outline: none !important;
+  &:focus {
+    &:after {
+      display: none;
+    }
   }
 }
 
@@ -31,6 +30,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0);
+  z-index: 99;
 }
 
