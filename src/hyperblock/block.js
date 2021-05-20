@@ -12,7 +12,7 @@ import './editor.scss';
 import './style.scss';
 
 const { __ } = wp.i18n; // Import __() from wp.i18n
-const { registerBlockType } = wp.blocks; // Import registerBlockType() from wp.blocks
+const { registerBlockType, createBlock } = wp.blocks; // Import registerBlockType() from wp.blocks
 const { Inserter, InnerBlocks, useBlockProps, BlockControls, InspectorControls } = wp.blockEditor;
 const { ToolbarButton, Panel, PanelBody, PanelRow, ToggleControl } = wp.components;
 const { useDispatch, useSelect } = wp.data;
@@ -57,6 +57,8 @@ registerBlockType( 'hyper/hyperblock', {
 
 		const [targetNode, setTargetNode] = useState(null);
 
+		const { replaceInnerBlocks } = useDispatch("core/block-editor");
+
 		const { innerBlocks, blocks, selectedBlock } = useSelect(select => ({
 			innerBlocks: select('core/block-editor').getBlocks(props.clientId),
 			blocks: select('core/block-editor').getBlocks(),
@@ -69,6 +71,21 @@ registerBlockType( 'hyper/hyperblock', {
 				document.querySelector('.popover-slot').style.display = 'none';
 			}
 		}, [selectedBlock])
+
+		useEffect(() => {
+			let needReplacing = false;
+			const newInnerBlocks = innerBlocks.map((block) => {
+				if ( block.name !== 'hyper/hyperchild' ) {
+					needReplacing = true;
+					return createBlock('hyper/hyperchild', {}, [block]);
+				} else {
+					return block;
+				}
+			})
+			if ( needReplacing ) {
+				replaceInnerBlocks(props.clientId, newInnerBlocks, false);
+			}
+		}, [innerBlocks])
 
 		const ALLOWED_BLOCKS = [ 'hyper/hyperchild' ];
 
@@ -156,7 +173,7 @@ registerBlockType( 'hyper/hyperblock', {
 						// }}
 					/>
 					<InnerBlocks
-						allowedBlocks={ ALLOWED_BLOCKS }
+						//allowedBlocks={ ALLOWED_BLOCKS }
 						renderAppender={false}
 					/>
 				</div>

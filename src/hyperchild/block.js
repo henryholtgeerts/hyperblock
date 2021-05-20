@@ -10,7 +10,7 @@ import './editor.scss';
 import './style.scss';
 
 const { __ } = wp.i18n; // Import __() from wp.i18n
-const { registerBlockType } = wp.blocks; // Import registerBlockType() from wp.blocks
+const { registerBlockType, createBlock } = wp.blocks; // Import registerBlockType() from wp.blocks
 const { Inserter, InnerBlocks, useBlockProps, BlockControls, InspectorControls } = wp.blockEditor;
 const { useDispatch, useSelect } = wp.data;
 const { useEffect, useRef, useState } = wp.element;
@@ -92,7 +92,7 @@ registerBlockType( 'hyper/hyperchild', {
 						padding: 0, 
 						margin: 0
 					}}
-					template={TEMPLATE}
+					//template={TEMPLATE}
 					renderAppender={false}
 				/>
 			</div>
