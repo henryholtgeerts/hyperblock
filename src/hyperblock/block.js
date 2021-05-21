@@ -147,9 +147,11 @@ registerBlockType( 'hyper/hyperblock', {
 						warpable={false}
 						onWarp={ ({transform}) => handleTransform(transform) }
 					/>
-					<InnerBlocks
-						renderAppender={false}
-					/>
+					<div className="hyperblock__container">
+						<InnerBlocks
+							renderAppender={false}
+						/>
+					</div>
 				</div>
 			</Fragment>
 		);
@@ -169,7 +171,9 @@ registerBlockType( 'hyper/hyperblock', {
 	save: ( props ) => {
 		return (
 			<div className={ props.className }>
-				<InnerBlocks.Content/>
+				<div className="hyperblock__container">
+					<InnerBlocks.Content/>
+				</div>
 			</div>
 		);
 	},

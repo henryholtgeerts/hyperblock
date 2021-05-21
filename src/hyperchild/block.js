@@ -126,8 +126,13 @@ registerBlockType( 'hyper/hyperchild', {
 	 * @returns {Mixed} JSX Frontend HTML.
 	 */
 	save: ( props ) => {
+
+		const { attributes } = props;
+		
 		return (
-			<div className={ props.className }>
+			<div className={ props.className } style={{
+				transform: attributes.desktopTransform,
+			}}>
 				<InnerBlocks.Content/>
 			</div>
 		);
