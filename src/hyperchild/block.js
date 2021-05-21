@@ -66,10 +66,6 @@ registerBlockType( 'hyper/hyperchild', {
 
 		const { attributes } = props;
 
-		useEffect(() => {
-			console.log('props!!', attributes);
-		}, [attributes]);
-
 		const dispatch = useDispatch();
 
 		const contentUnlocked = innerBlocks && innerBlocks[0] && innerBlocks[0].clientId == selectedBlock.clientId;
@@ -128,7 +124,7 @@ registerBlockType( 'hyper/hyperchild', {
 	save: ( props ) => {
 
 		const { attributes } = props;
-		
+
 		return (
 			<div className={ props.className } style={{
 				transform: attributes.desktopTransform,

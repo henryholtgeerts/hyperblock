@@ -61,6 +61,8 @@ registerBlockType( 'hyper/hyperblock', {
 	 */
 	edit: ( props ) => {
 
+		const [ sizingMode, setSizingMode ] = useState('scale');
+
 		const [targetNode, setTargetNode] = useState(null);
 
 		const { replaceInnerBlocks, updateBlockAttributes } = useDispatch("core/block-editor");
@@ -78,7 +80,7 @@ registerBlockType( 'hyper/hyperblock', {
 			if ( selectedBlock && selectedBlock.name === 'hyper/hyperchild' ) {
 				document.querySelector('.popover-slot').style.display = 'none';
 			}
-		}, [selectedBlock])
+		}, [selectedBlock]);
 
 		useEffect(() => {
 			let needReplacing = false;
@@ -93,7 +95,32 @@ registerBlockType( 'hyper/hyperblock', {
 			if ( needReplacing ) {
 				replaceInnerBlocks(props.clientId, newInnerBlocks, false);
 			}
-		}, [innerBlocks])
+		}, [innerBlocks]);
+
+		useEffect(() => {
+			const handleKeyPress = (e) => {
+				switch ( e.key ) {
+					case 'W': {
+						setSizingMode('warp');
+						break;
+					}
+					case 'S': {
+						setSizingMode('scale');
+						break;
+					}
+					case 'R': {
+						setSizingMode('resize');
+						break;
+					}
+				}
+			}
+			if ( selectedBlock && selectedBlock.clientId === props.clientId || innerBlocks && innerBlocks.includes(selectedBlock) ) {
+				window.addEventListener('keypress', handleKeyPress);
+			}
+			return function cleanup () {
+				window.removeEventListener('keypress', handleKeyPress);
+			}
+		}, [innerBlocks, selectedBlock])
 
 		const ALLOWED_BLOCKS = [ 'hyper/hyperchild' ];
 
@@ -134,17 +161,17 @@ registerBlockType( 'hyper/hyperblock', {
 						draggable={true}
 						onDrag={ ({transform}) => handleTransform(transform) }
 
-						resizable={false}
+						resizable={sizingMode && sizingMode === 'resize'}
 						onResize={({ height, width }) => handleResize(height, width)}
 
-						scalable={true}
+						scalable={sizingMode && sizingMode === 'scale'}
 						onScale={ ({transform}) => handleTransform(transform) }
 
 						rotatable={true}
 						throttleRotate={0}
 						onRotate={ ({transform}) => handleTransform(transform) }
 
-						warpable={false}
+						warpable={sizingMode && sizingMode === 'warp'}
 						onWarp={ ({transform}) => handleTransform(transform) }
 					/>
 					<div className="hyperblock__container">
