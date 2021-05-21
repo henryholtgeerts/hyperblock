@@ -38,6 +38,18 @@ registerBlockType( 'hyper/hyperchild', {
 		__( 'hyper' ),
 		__( 'hyperchild' ),
 	],
+	attributes: {
+		desktopTransform: {
+			type: 'string',
+			default: 'matrix(1,0,0,1,0,0) translate(0px, 0px)'
+		},
+		desktopHeight: {
+			type: 'string',
+		},
+		desktopWidth: {
+			type: 'string',
+		}
+	},
 
 	/**
 	 * The edit function describes the structure of your block in the context of the editor.
@@ -51,6 +63,12 @@ registerBlockType( 'hyper/hyperchild', {
 	 * @returns {Mixed} JSX Component.
 	 */
 	edit: ( props ) => {
+
+		const { attributes } = props;
+
+		useEffect(() => {
+			console.log('props!!', attributes);
+		}, [attributes]);
 
 		const dispatch = useDispatch();
 
@@ -74,12 +92,10 @@ registerBlockType( 'hyper/hyperchild', {
 			}
 		}, [overlayRef, innerBlocks]);
 
-		const TEMPLATE = [
-			[ 'core/image' ],
-		];
-
 		return (
-			<div className={ props.className }>
+			<div className={ props.className } style={{
+				transform: attributes.desktopTransform,
+			}}>
 				<div 
 					className="hyper-hyperchild__overlay" 
 					ref={overlayRef} 
@@ -92,7 +108,6 @@ registerBlockType( 'hyper/hyperchild', {
 						padding: 0, 
 						margin: 0
 					}}
-					//template={TEMPLATE}
 					renderAppender={false}
 				/>
 			</div>

@@ -41,6 +41,12 @@ registerBlockType( 'hyper/hyperblock', {
 		__( 'hyper' ),
 		__( 'hyperblock' ),
 	],
+	supports: {
+		align: [
+			'full',
+			'wide'
+		]
+	},
 
 	/**
 	 * The edit function describes the structure of your block in the context of the editor.
@@ -57,7 +63,9 @@ registerBlockType( 'hyper/hyperblock', {
 
 		const [targetNode, setTargetNode] = useState(null);
 
-		const { replaceInnerBlocks } = useDispatch("core/block-editor");
+		const { replaceInnerBlocks, updateBlockAttributes } = useDispatch("core/block-editor");
+
+		const dispatch = useDispatch();
 
 		const { innerBlocks, blocks, selectedBlock } = useSelect(select => ({
 			innerBlocks: select('core/block-editor').getBlocks(props.clientId),
@@ -89,6 +97,19 @@ registerBlockType( 'hyper/hyperblock', {
 
 		const ALLOWED_BLOCKS = [ 'hyper/hyperchild' ];
 
+		const handleTransform = (transform) => {
+			dispatch(updateBlockAttributes(selectedBlock.clientId, {
+				desktopTransform: transform
+			}))
+		}
+
+		const handleResize = (height, width) => {
+			dispatch(updateBlockAttributes(selectedBlock.clientId, {
+				desktopHeight: height,
+				desktopWidth: width
+			}))
+		}
+
 		return (
 			<Fragment>
 				<BlockControls>
@@ -111,69 +132,22 @@ registerBlockType( 'hyper/hyperblock', {
 						container={document.querySelector(`[data-block="${props.clientId}"] > div`)}
 
 						draggable={true}
-						onDrag={({
-							target,
-							transform,
-						}) => {
-							target.style.transform = transform;
-						}}
+						onDrag={ ({transform}) => handleTransform(transform) }
 
-						// resizable={true}
-						// onResize={({
-						// 	delta,
-						// 	target,
-						// 	width,
-						// 	height
-						// }) => {
-						// 	delta[0] && (target.style.width = `${width}px`);
-						// 	delta[1] && (target.style.height = `${height}px`);
-						// }}
+						resizable={false}
+						onResize={({ height, width }) => handleResize(height, width)}
 
 						scalable={true}
-						throttleScale={0}
-						onScale={({
-							target,
-							transform
-						}) => {
-							target.style.transform = transform;
-						}}
+						onScale={ ({transform}) => handleTransform(transform) }
 
 						rotatable={true}
 						throttleRotate={0}
-						onRotate={({
-							target,
-							transform
-						}) => {
-							target.style.transform = transform;
-						}}
+						onRotate={ ({transform}) => handleTransform(transform) }
 
-
-						// warpable={true}
-						// onWarpStart={({ target, clientX, clientY }) => {
-						// 	if ( typeof target.matrix !== 'array' ) {
-						// 		target.matrix = [
-						// 			1, 0, 0, 0,
-						// 			0, 1, 0, 0,
-						// 			0, 0, 1, 0,
-						// 			0, 0, 0, 1,
-						// 		];
-						// 	}
-						// }}
-						// onWarp={({
-						// 	target,
-						// 	clientX,
-						// 	clientY,
-						// 	delta,
-						// 	dist,
-						// 	multiply,
-						// 	transform,
-						// }) => {
-						// 	target.matrix = multiply(target.matrix, delta);
-						// 	target.style.transform = `matrix3d(${target.matrix.join(",")})`;
-						// }}
+						warpable={false}
+						onWarp={ ({transform}) => handleTransform(transform) }
 					/>
 					<InnerBlocks
-						//allowedBlocks={ ALLOWED_BLOCKS }
 						renderAppender={false}
 					/>
 				</div>
