@@ -5,6 +5,8 @@
  * Simple block, renders and saves the same content without any interactivity.
  */
 
+import { Frame } from 'scenejs';
+
 //  Import CSS.
 import './editor.scss';
 import './style.scss';
@@ -39,16 +41,19 @@ registerBlockType( 'hyper/hyperchild', {
 		__( 'hyperchild' ),
 	],
 	attributes: {
-		desktopTransform: {
-			type: 'string',
-			default: 'matrix(1,0,0,1,0,0) translate(0px, 0px)'
+		desktopStyle: {
+			type: 'object',
+			default: {
+				top: '0px',
+				left: '0px',
+				transform: {
+					rotate: '0deg',
+					scaleX: 1,
+					scaleY: 1,
+					matrix3d: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+				}
+			}
 		},
-		desktopHeight: {
-			type: 'string',
-		},
-		desktopWidth: {
-			type: 'string',
-		}
 	},
 
 	/**
@@ -88,10 +93,10 @@ registerBlockType( 'hyper/hyperchild', {
 			}
 		}, [overlayRef, innerBlocks]);
 
+		console.log('CSSObject', new Frame(attributes.desktopStyle).toCSSObject())
+
 		return (
-			<div className={ props.className } style={{
-				transform: attributes.desktopTransform,
-			}}>
+			<div className={ props.className } style={new Frame(attributes.desktopStyle).toCSSObject()}>
 				<div 
 					className="hyper-hyperchild__overlay" 
 					ref={overlayRef} 

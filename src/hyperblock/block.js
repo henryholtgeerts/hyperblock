@@ -5,6 +5,7 @@
  * Simple block, renders and saves the same content without any interactivity.
  */
 
+import { Frame } from 'scenejs';
 import Moveable from 'react-moveable';
 
 //  Import CSS.
@@ -130,6 +131,26 @@ registerBlockType( 'hyper/hyperblock', {
 			}))
 		}
 
+		const handleDrag = (top, left) => {
+			const { desktopStyle } = selectedBlock.attributes;
+			const newDesktopStyle = JSON.parse(JSON.stringify(desktopStyle));
+			newDesktopStyle.top = `${top}px`;
+			newDesktopStyle.left = `${left}px`;
+			dispatch(updateBlockAttributes(selectedBlock.clientId, {
+				desktopStyle: newDesktopStyle,
+			}));
+		}
+
+		const handleScale = (x, y) => {
+			const { desktopStyle } = selectedBlock.attributes;
+			const newDesktopStyle = JSON.parse(JSON.stringify(desktopStyle));
+			newDesktopStyle.transform.scaleX = desktopStyle.transform.scaleX * x;
+			newDesktopStyle.transform.scaleY = desktopStyle.transform.scaleY * y;
+			dispatch(updateBlockAttributes(selectedBlock.clientId, {
+				desktopStyle: newDesktopStyle,
+			}));
+		}
+
 		const handleResize = (height, width) => {
 			dispatch(updateBlockAttributes(selectedBlock.clientId, {
 				desktopHeight: height,
@@ -159,17 +180,23 @@ registerBlockType( 'hyper/hyperblock', {
 						container={document.querySelector(`[data-block="${props.clientId}"] > div`)}
 
 						draggable={true}
-						onDrag={ ({transform}) => handleTransform(transform) }
+						onDrag={ ({transform, delta, dist, top, left}) => {
+							handleDrag(top, left);
+						}}
 
 						resizable={sizingMode && sizingMode === 'resize'}
 						onResize={({ height, width }) => handleResize(height, width)}
 
 						scalable={sizingMode && sizingMode === 'scale'}
-						onScale={ ({transform}) => handleTransform(transform) }
+						onScale={ ({transform, scale, dist, delta}) => { 
+							handleScale(delta[0], delta[1]);
+						}}
 
 						rotatable={true}
 						throttleRotate={0}
-						onRotate={ ({transform}) => handleTransform(transform) }
+						onRotate={ ({transform, delta}) => {
+							handleTransform(transform)
+						}}
 
 						warpable={sizingMode && sizingMode === 'warp'}
 						onWarp={ ({transform}) => handleTransform(transform) }
