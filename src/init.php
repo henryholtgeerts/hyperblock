@@ -36,6 +36,15 @@ function hyper_assets() { // phpcs:ignore
 		null // filemtime( plugin_dir_path( __DIR__ ) . 'dist/blocks.style.build.css' ) // Version: File modification time.
 	);
 
+	// Register frontend script.
+	wp_register_script(
+		'hyper-js', // Handle.
+		plugins_url( '/dist/frontend.build.js', dirname( __FILE__ ) ), // Block.build.js: We register the block here. Built with Webpack.
+		[], // Dependencies, defined above.
+		null, // filemtime( plugin_dir_path( __DIR__ ) . 'dist/blocks.build.js' ), // Version: filemtime — Gets file modification time.
+		true // Enqueue the script in the footer.
+	);
+
 	// Register block editor script for backend.
 	wp_register_script(
 		'hyper-editor-js', // Handle.
@@ -78,6 +87,7 @@ function hyper_assets() { // phpcs:ignore
 		'hyper/hyperblock', array(
 			// Enqueue blocks.style.build.css on both frontend & backend.
 			'style'         => 'hyper-css',
+			'script'		=> 'hyper-js',
 			// Enqueue blocks.build.js in the editor only.
 			'editor_script' => 'hyper-editor-js',
 			// Enqueue blocks.editor.build.css in the editor only.
