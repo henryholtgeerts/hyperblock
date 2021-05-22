@@ -56,6 +56,36 @@ registerBlockType( 'hyper/hyperchild', {
 				],
 			}
 		},
+		tabletFrame: {
+			type: 'object',
+			default: {
+				size: null,
+				translate: [ 0, 0 ],
+				scale: [ 1, 1 ],
+				rotate: 0,
+				warp: [
+					1, 0, 0, 0,
+					0, 1, 0, 0,
+					0, 0, 1, 0,
+					0, 0, 0, 1,
+				],
+			}
+		},
+		mobileFrame: {
+			type: 'object',
+			default: {
+				size: null,
+				translate: [ 0, 0 ],
+				scale: [ 1, 1 ],
+				rotate: 0,
+				warp: [
+					1, 0, 0, 0,
+					0, 1, 0, 0,
+					0, 0, 1, 0,
+					0, 0, 0, 1,
+				],
+			}
+		},
 	},
 
 	/**
@@ -79,10 +109,11 @@ registerBlockType( 'hyper/hyperchild', {
 
 		const overlayRef = useRef();
 
-		const { innerBlocks, blocks, selectedBlock } = useSelect(select => ({
+		const { innerBlocks, blocks, selectedBlock, deviceType } = useSelect(select => ({
 			innerBlocks: select('core/block-editor').getBlocks(props.clientId),
 			blocks: select('core/block-editor').getBlocks(),
-			selectedBlock: select('core/block-editor').getBlock( select('core/block-editor').getBlockSelectionStart(props.clientId) )
+			selectedBlock: select('core/block-editor').getBlock( select('core/block-editor').getBlockSelectionStart(props.clientId) ),
+			deviceType: select( 'core/edit-post' ).__experimentalGetPreviewDeviceType().toLowerCase(),
 		}));
 
 		useEffect(() => {
@@ -96,7 +127,7 @@ registerBlockType( 'hyper/hyperchild', {
 		}, [overlayRef, innerBlocks]);
 
 		const getCssObject = () => {
-			const { translate, scale, rotate, warp, size } = attributes.desktopFrame;
+			const { translate, scale, rotate, warp, size } = attributes[`${deviceType}Frame`];
 			return {
 				width: size && size[0],
 				height: size && size[1],
@@ -140,15 +171,29 @@ registerBlockType( 'hyper/hyperchild', {
 		const { attributes } = props;
 
 
-		const getCssObject = () => {
-			const { translate, scale, rotate, warp } = attributes.desktopFrame;
+		const getCssObject = (deviceType) => {
+			const { translate, scale, rotate, warp, size } = attributes[`${deviceType}Frame`];
 			return {
+				width: size && size[0],
+				height: size && size[1],
 				transform: `translate(${translate[0]}px, ${translate[1]}px) rotate(${rotate}deg) scale(${scale[0]}, ${scale[1]}) matrix3d(${warp.join(",")})`
 			}
 		}
 
+		const styleToString = (style) => {
+			return Object.keys(style).reduce((acc, key) => (
+				acc + key.split(/(?=[A-Z])/).join('-').toLowerCase() + ':' + style[key] + ';'
+			), '');
+		};
+
 		return (
-			<div className={ props.className } style={getCssObject()}>
+			<div 
+				className={ props.className } 
+				style={getCssObject('desktop')} 
+				data-desktop-style={styleToString(getCssObject('desktop'))}
+				data-tablet-style={styleToString(getCssObject('tablet'))}
+				data-mobile-style={styleToString(getCssObject('mobile'))}
+				>
 				<InnerBlocks.Content/>
 			</div>
 		);

@@ -70,10 +70,11 @@ registerBlockType( 'hyper/hyperblock', {
 
 		const dispatch = useDispatch();
 
-		const { innerBlocks, blocks, selectedBlock } = useSelect(select => ({
+		const { innerBlocks, blocks, selectedBlock, deviceType } = useSelect(select => ({
 			innerBlocks: select('core/block-editor').getBlocks(props.clientId),
 			blocks: select('core/block-editor').getBlocks(),
-			selectedBlock: select('core/block-editor').getBlock( select('core/block-editor').getBlockSelectionStart(props.clientId) )
+			selectedBlock: select('core/block-editor').getBlock( select('core/block-editor').getBlockSelectionStart(props.clientId) ),
+			deviceType: select( 'core/edit-post' ).__experimentalGetPreviewDeviceType().toLowerCase(),
 		}));
 
 		useEffect(() => {
@@ -125,39 +126,6 @@ registerBlockType( 'hyper/hyperblock', {
 
 		const ALLOWED_BLOCKS = [ 'hyper/hyperchild' ];
 
-		const handleTransform = (transform) => {
-			dispatch(updateBlockAttributes(selectedBlock.clientId, {
-				desktopTransform: transform
-			}))
-		}
-
-		const handleDrag = (top, left) => {
-			const { desktopStyle } = selectedBlock.attributes;
-			const newDesktopStyle = JSON.parse(JSON.stringify(desktopStyle));
-			newDesktopStyle.top = `${top}px`;
-			newDesktopStyle.left = `${left}px`;
-			dispatch(updateBlockAttributes(selectedBlock.clientId, {
-				desktopStyle: newDesktopStyle,
-			}));
-		}
-
-		const handleScale = (x, y) => {
-			const { desktopStyle } = selectedBlock.attributes;
-			const newDesktopStyle = JSON.parse(JSON.stringify(desktopStyle));
-			newDesktopStyle.transform.scaleX = desktopStyle.transform.scaleX * x;
-			newDesktopStyle.transform.scaleY = desktopStyle.transform.scaleY * y;
-			dispatch(updateBlockAttributes(selectedBlock.clientId, {
-				desktopStyle: newDesktopStyle,
-			}));
-		}
-
-		const handleResize = (height, width) => {
-			dispatch(updateBlockAttributes(selectedBlock.clientId, {
-				desktopHeight: height,
-				desktopWidth: width
-			}))
-		}
-
 		return (
 			<Fragment>
 				<BlockControls>
@@ -181,13 +149,13 @@ registerBlockType( 'hyper/hyperblock', {
 
 						draggable={true}
 						onDragStart={({set}) => {
-							set(selectedBlock.attributes.desktopFrame.translate);
+							set(selectedBlock.attributes[`${deviceType}Frame`].translate);
 						}}
 						onDrag={ ({ beforeTranslate }) => {
-							const newDesktopFrame = JSON.parse(JSON.stringify(selectedBlock.attributes.desktopFrame));
-							newDesktopFrame.translate = beforeTranslate;
+							const newFrame = JSON.parse(JSON.stringify(selectedBlock.attributes[`${deviceType}Frame`]));
+							newFrame.translate = beforeTranslate;
 							dispatch(updateBlockAttributes(selectedBlock.clientId, {
-								desktopFrame: newDesktopFrame,
+								[`${deviceType}Frame`]: newFrame,
 							}))
 						}}
 
@@ -198,53 +166,53 @@ registerBlockType( 'hyper/hyperblock', {
 							const cssWidth = parseFloat(style.width);
 							const cssHeight = parseFloat(style.height);
 							set([cssWidth, cssHeight]);
-							dragStart && dragStart.set(selectedBlock.attributes.desktopFrame.translate);
+							dragStart && dragStart.set(selectedBlock.attributes[`${deviceType}Frame`].translate);
 						}}
 						onResize={({ width, height, drag }) => {
-							const newDesktopFrame = JSON.parse(JSON.stringify(selectedBlock.attributes.desktopFrame));
-							newDesktopFrame.size = [ width, height ];
-							newDesktopFrame.translate = drag.beforeTranslate;
+							const newDesktopFrame = JSON.parse(JSON.stringify(selectedBlock.attributes[`${deviceType}Frame`]));
+							newFrame.size = [ width, height ];
+							newFrame.translate = drag.beforeTranslate;
 							dispatch(updateBlockAttributes(selectedBlock.clientId, {
-								desktopFrame: newDesktopFrame,
+								[`${deviceType}Frame`]: newFrame,
 							}))
 						}}
 
 						scalable={sizingMode && sizingMode === 'scale'}
 						onScaleStart={ ({ set, dragStart }) => {
-							set(selectedBlock.attributes.desktopFrame.scale);
-							dragStart && dragStart.set(selectedBlock.attributes.desktopFrame.translate);
+							set(selectedBlock.attributes[`${deviceType}Frame`].scale);
+							dragStart && dragStart.set(selectedBlock.attributes[`${deviceType}Frame`].translate);
 						}}
 						onScale={ ({scale, drag}) => { 
-							const newDesktopFrame = JSON.parse(JSON.stringify(selectedBlock.attributes.desktopFrame));
-							newDesktopFrame.scale = scale;
-							newDesktopFrame.translate = drag.beforeTranslate;
+							const newFrame = JSON.parse(JSON.stringify(selectedBlock.attributes[`${deviceType}Frame`]));
+							newFrame.scale = scale;
+							newFrame.translate = drag.beforeTranslate;
 							dispatch(updateBlockAttributes(selectedBlock.clientId, {
-								desktopFrame: newDesktopFrame,
+								[`${deviceType}Frame`]: newFrame,
 							}))
 						}}
 
 						rotatable={true}
 						throttleRotate={0}
 						onRotateStart={ ({set}) => {
-							set(selectedBlock.attributes.desktopFrame.rotate);
+							set(selectedBlock.attributes[`${deviceType}Frame`].rotate);
 						}}
 						onRotate={ ({ beforeRotate }) => {
-							const newDesktopFrame = JSON.parse(JSON.stringify(selectedBlock.attributes.desktopFrame));
-							newDesktopFrame.rotate = beforeRotate;
+							const newFrame = JSON.parse(JSON.stringify(selectedBlock.attributes[`${deviceType}Frame`]));
+							newFrame.rotate = beforeRotate;
 							dispatch(updateBlockAttributes(selectedBlock.clientId, {
-								desktopFrame: newDesktopFrame,
+								[`${deviceType}Frame`]: newFrame,
 							}))
 						}}
 
 						warpable={sizingMode && sizingMode === 'warp'}
 						onWarpStart={({set}) => {
-							set(selectedBlock.attributes.desktopFrame.warp);
+							set(selectedBlock.attributes[`${deviceType}Frame`].warp);
 						}}
 						onWarp={ ({matrix}) => {
-							const newDesktopFrame = JSON.parse(JSON.stringify(selectedBlock.attributes.desktopFrame));
-							newDesktopFrame.warp = matrix;
+							const newFrame = JSON.parse(JSON.stringify(selectedBlock.attributes[`${deviceType}Frame`]));
+							newFrame.warp = matrix;
 							dispatch(updateBlockAttributes(selectedBlock.clientId, {
-								desktopFrame: newDesktopFrame,
+								[`${deviceType}Frame`]: newFrame,
 							}))
 						}}
 					/>
