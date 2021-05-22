@@ -180,26 +180,73 @@ registerBlockType( 'hyper/hyperblock', {
 						container={document.querySelector(`[data-block="${props.clientId}"] > div`)}
 
 						draggable={true}
-						onDrag={ ({transform, delta, dist, top, left}) => {
-							handleDrag(top, left);
+						onDragStart={({set}) => {
+							set(selectedBlock.attributes.desktopFrame.translate);
+						}}
+						onDrag={ ({ beforeTranslate }) => {
+							const newDesktopFrame = JSON.parse(JSON.stringify(selectedBlock.attributes.desktopFrame));
+							newDesktopFrame.translate = beforeTranslate;
+							dispatch(updateBlockAttributes(selectedBlock.clientId, {
+								desktopFrame: newDesktopFrame,
+							}))
 						}}
 
 						resizable={sizingMode && sizingMode === 'resize'}
-						onResize={({ height, width }) => handleResize(height, width)}
+						onResizeStart={({target, set, setOrigin, dragStart}) => {
+							setOrigin(["%", "%"]);
+							const style = window.getComputedStyle(target);
+							const cssWidth = parseFloat(style.width);
+							const cssHeight = parseFloat(style.height);
+							set([cssWidth, cssHeight]);
+							dragStart && dragStart.set(selectedBlock.attributes.desktopFrame.translate);
+						}}
+						onResize={({ width, height, drag }) => {
+							const newDesktopFrame = JSON.parse(JSON.stringify(selectedBlock.attributes.desktopFrame));
+							newDesktopFrame.size = [ width, height ];
+							newDesktopFrame.translate = drag.beforeTranslate;
+							dispatch(updateBlockAttributes(selectedBlock.clientId, {
+								desktopFrame: newDesktopFrame,
+							}))
+						}}
 
 						scalable={sizingMode && sizingMode === 'scale'}
-						onScale={ ({transform, scale, dist, delta}) => { 
-							handleScale(delta[0], delta[1]);
+						onScaleStart={ ({ set, dragStart }) => {
+							set(selectedBlock.attributes.desktopFrame.scale);
+							dragStart && dragStart.set(selectedBlock.attributes.desktopFrame.translate);
+						}}
+						onScale={ ({scale, drag}) => { 
+							const newDesktopFrame = JSON.parse(JSON.stringify(selectedBlock.attributes.desktopFrame));
+							newDesktopFrame.scale = scale;
+							newDesktopFrame.translate = drag.beforeTranslate;
+							dispatch(updateBlockAttributes(selectedBlock.clientId, {
+								desktopFrame: newDesktopFrame,
+							}))
 						}}
 
 						rotatable={true}
 						throttleRotate={0}
-						onRotate={ ({transform, delta}) => {
-							handleTransform(transform)
+						onRotateStart={ ({set}) => {
+							set(selectedBlock.attributes.desktopFrame.rotate);
+						}}
+						onRotate={ ({ beforeRotate }) => {
+							const newDesktopFrame = JSON.parse(JSON.stringify(selectedBlock.attributes.desktopFrame));
+							newDesktopFrame.rotate = beforeRotate;
+							dispatch(updateBlockAttributes(selectedBlock.clientId, {
+								desktopFrame: newDesktopFrame,
+							}))
 						}}
 
 						warpable={sizingMode && sizingMode === 'warp'}
-						onWarp={ ({transform}) => handleTransform(transform) }
+						onWarpStart={({set}) => {
+							set(selectedBlock.attributes.desktopFrame.warp);
+						}}
+						onWarp={ ({matrix}) => {
+							const newDesktopFrame = JSON.parse(JSON.stringify(selectedBlock.attributes.desktopFrame));
+							newDesktopFrame.warp = matrix;
+							dispatch(updateBlockAttributes(selectedBlock.clientId, {
+								desktopFrame: newDesktopFrame,
+							}))
+						}}
 					/>
 					<div className="hyperblock__container">
 						<InnerBlocks

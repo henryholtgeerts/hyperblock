@@ -41,17 +41,19 @@ registerBlockType( 'hyper/hyperchild', {
 		__( 'hyperchild' ),
 	],
 	attributes: {
-		desktopStyle: {
+		desktopFrame: {
 			type: 'object',
 			default: {
-				top: '0px',
-				left: '0px',
-				transform: {
-					rotate: '0deg',
-					scaleX: 1,
-					scaleY: 1,
-					matrix3d: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
-				}
+				size: null,
+				translate: [ 0, 0 ],
+				scale: [ 1, 1 ],
+				rotate: 0,
+				warp: [
+					1, 0, 0, 0,
+					0, 1, 0, 0,
+					0, 0, 1, 0,
+					0, 0, 0, 1,
+				],
 			}
 		},
 	},
@@ -93,10 +95,17 @@ registerBlockType( 'hyper/hyperchild', {
 			}
 		}, [overlayRef, innerBlocks]);
 
-		console.log('CSSObject', new Frame(attributes.desktopStyle).toCSSObject())
+		const getCssObject = () => {
+			const { translate, scale, rotate, warp, size } = attributes.desktopFrame;
+			return {
+				width: size && size[0],
+				height: size && size[1],
+				transform: `translate(${translate[0]}px, ${translate[1]}px) rotate(${rotate}deg) scale(${scale[0]}, ${scale[1]}) matrix3d(${warp.join(",")})`
+			}
+		}
 
 		return (
-			<div className={ props.className } style={new Frame(attributes.desktopStyle).toCSSObject()}>
+			<div className={ props.className } style={getCssObject()}>
 				<div 
 					className="hyper-hyperchild__overlay" 
 					ref={overlayRef} 
@@ -130,10 +139,16 @@ registerBlockType( 'hyper/hyperchild', {
 
 		const { attributes } = props;
 
+
+		const getCssObject = () => {
+			const { translate, scale, rotate, warp } = attributes.desktopFrame;
+			return {
+				transform: `translate(${translate[0]}px, ${translate[1]}px) rotate(${rotate}deg) scale(${scale[0]}, ${scale[1]}) matrix3d(${warp.join(",")})`
+			}
+		}
+
 		return (
-			<div className={ props.className } style={{
-				transform: attributes.desktopTransform,
-			}}>
+			<div className={ props.className } style={getCssObject()}>
 				<InnerBlocks.Content/>
 			</div>
 		);
