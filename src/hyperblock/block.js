@@ -5,7 +5,7 @@
  * Simple block, renders and saves the same content without any interactivity.
  */
 
- import { getDeviceFrame } from '../utils';
+ import { getDeviceFrame, getDefaultFrame } from '../utils';
  import Moveable from 'react-moveable';
 
 //  Import CSS.
@@ -91,7 +91,11 @@ registerBlockType( 'hyper/hyperblock', {
 			const newInnerBlocks = innerBlocks.map((block) => {
 				if ( block.name !== 'hyper/hyperchild' ) {
 					needReplacing = true;
-					return createBlock('hyper/hyperchild', {}, [block]);
+					return createBlock('hyper/hyperchild', {
+						desktopFrame: getDefaultFrame(block),
+						tabletFrame: {},
+						mobileFrame: {}
+					}, [block]);
 				} else {
 					return block;
 				}
@@ -208,7 +212,7 @@ registerBlockType( 'hyper/hyperblock', {
 								attributes: selectedBlock && selectedBlock.attributes,
 								deviceType,
 							}).scale);
-							dragStart && dragStart.set(sgetDeviceFrame({
+							dragStart && dragStart.set(getDeviceFrame({
 								attributes: selectedBlock && selectedBlock.attributes,
 								deviceType,
 							}).translate);

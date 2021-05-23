@@ -7,8 +7,8 @@
 .wp-block-hyper-hyperchild  {
   margin: 0;
   padding: 0;
+  width: max-content;
   height: auto;
-  width: var(--responsive--aligndefault-width);
   position: absolute;
 
   > * {
