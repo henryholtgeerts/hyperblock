@@ -8,6 +8,11 @@
   margin: 0;
   padding: 0;
   height: auto;
-  width: 560px;
+  width: var(--responsive--aligndefault-width);
   position: absolute;
+
+  > * {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
 }

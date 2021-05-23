@@ -28,6 +28,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 1.0.0
  */
 function hyper_assets() { // phpcs:ignore
+	global $content_width;
+
 	// Register block styles for both frontend + backend.
 	wp_register_style(
 		'hyper-css', // Handle.
@@ -69,6 +71,7 @@ function hyper_assets() { // phpcs:ignore
 		[
 			'pluginDirPath' => plugin_dir_path( __DIR__ ),
 			'pluginDirUrl'  => plugin_dir_url( __DIR__ ),
+			'contentWidth' => $content_width,
 			// Add more data here that you want to access from `cgbGlobal` object.
 		]
 	);

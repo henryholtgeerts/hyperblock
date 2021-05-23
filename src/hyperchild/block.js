@@ -5,7 +5,7 @@
  * Simple block, renders and saves the same content without any interactivity.
  */
 
-import { Frame } from 'scenejs';
+import { getDeviceStyle, getDeviceCssObject } from '../utils';
 
 //  Import CSS.
 import './editor.scss';
@@ -58,33 +58,11 @@ registerBlockType( 'hyper/hyperchild', {
 		},
 		tabletFrame: {
 			type: 'object',
-			default: {
-				size: null,
-				translate: [ 0, 0 ],
-				scale: [ 1, 1 ],
-				rotate: 0,
-				warp: [
-					1, 0, 0, 0,
-					0, 1, 0, 0,
-					0, 0, 1, 0,
-					0, 0, 0, 1,
-				],
-			}
+			default: {}
 		},
 		mobileFrame: {
 			type: 'object',
-			default: {
-				size: null,
-				translate: [ 0, 0 ],
-				scale: [ 1, 1 ],
-				rotate: 0,
-				warp: [
-					1, 0, 0, 0,
-					0, 1, 0, 0,
-					0, 0, 1, 0,
-					0, 0, 0, 1,
-				],
-			}
+			default: {}
 		},
 	},
 
@@ -126,17 +104,8 @@ registerBlockType( 'hyper/hyperchild', {
 			}
 		}, [overlayRef, innerBlocks]);
 
-		const getCssObject = () => {
-			const { translate, scale, rotate, warp, size } = attributes[`${deviceType}Frame`];
-			return {
-				width: size && size[0],
-				height: size && size[1],
-				transform: `translate(${translate[0]}px, ${translate[1]}px) rotate(${rotate}deg) scale(${scale[0]}, ${scale[1]}) matrix3d(${warp.join(",")})`
-			}
-		}
-
 		return (
-			<div className={ props.className } style={getCssObject()}>
+			<div className={ props.className } style={getDeviceCssObject({deviceType, attributes})}>
 				<div 
 					className="hyper-hyperchild__overlay" 
 					ref={overlayRef} 
@@ -170,29 +139,25 @@ registerBlockType( 'hyper/hyperchild', {
 
 		const { attributes } = props;
 
-
-		const getCssObject = (deviceType) => {
-			const { translate, scale, rotate, warp, size } = attributes[`${deviceType}Frame`];
-			return {
-				width: size && size[0],
-				height: size && size[1],
-				transform: `translate(${translate[0]}px, ${translate[1]}px) rotate(${rotate}deg) scale(${scale[0]}, ${scale[1]}) matrix3d(${warp.join(",")})`
-			}
-		}
-
-		const styleToString = (style) => {
-			return Object.keys(style).reduce((acc, key) => (
-				acc + key.split(/(?=[A-Z])/).join('-').toLowerCase() + ':' + style[key] + ';'
-			), '');
-		};
-
 		return (
 			<div 
 				className={ props.className } 
-				style={getCssObject('desktop')} 
-				data-desktop-style={styleToString(getCssObject('desktop'))}
-				data-tablet-style={styleToString(getCssObject('tablet'))}
-				data-mobile-style={styleToString(getCssObject('mobile'))}
+				style={getDeviceCssObject({
+					attributes,
+					deviceType: 'desktop'
+				})}
+				data-desktop-style={getDeviceStyle({
+					attributes,
+					deviceType: 'desktop'
+				})}
+				data-tablet-style={getDeviceStyle({
+					attributes,
+					deviceType: 'tablet'
+				})}
+				data-mobile-style={getDeviceStyle({
+					attributes,
+					deviceType: 'mobile'
+				})}
 				>
 				<InnerBlocks.Content/>
 			</div>

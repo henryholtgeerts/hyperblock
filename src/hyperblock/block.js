@@ -5,8 +5,8 @@
  * Simple block, renders and saves the same content without any interactivity.
  */
 
-import { Frame } from 'scenejs';
-import Moveable from 'react-moveable';
+ import { getDeviceFrame } from '../utils';
+ import Moveable from 'react-moveable';
 
 //  Import CSS.
 import './editor.scss';
@@ -17,7 +17,7 @@ const { registerBlockType, createBlock } = wp.blocks; // Import registerBlockTyp
 const { Inserter, InnerBlocks, useBlockProps, BlockControls, InspectorControls } = wp.blockEditor;
 const { ToolbarButton, Panel, PanelBody, PanelRow, ToggleControl } = wp.components;
 const { useDispatch, useSelect } = wp.data;
-const { useEffect, useState, Fragment } = wp.element;
+const { useEffect, useState, Fragment, useCallback } = wp.element;
 
 /**
  * Register: aa Gutenberg Block.
@@ -65,6 +65,8 @@ registerBlockType( 'hyper/hyperblock', {
 		const [ sizingMode, setSizingMode ] = useState('scale');
 
 		const [targetNode, setTargetNode] = useState(null);
+
+		const [ showGuides, setShowGuides ] = useState(false);
 
 		const { replaceInnerBlocks, updateBlockAttributes } = useDispatch("core/block-editor");
 
@@ -128,6 +130,17 @@ registerBlockType( 'hyper/hyperblock', {
 
 		return (
 			<Fragment>
+				<InspectorControls key="settting">
+					<PanelBody title="Appearance" icon="microphone" initialOpen={ true }>
+						<PanelRow>
+							<ToggleControl
+								label="Show Guides"
+								checked={ showGuides }
+								onChange={ (val) => setShowGuides(val) }
+							/>
+						</PanelRow>
+					</PanelBody>
+                </InspectorControls>
 				<BlockControls>
 					<Inserter
 						rootClientId={ props.clientId }
@@ -149,10 +162,16 @@ registerBlockType( 'hyper/hyperblock', {
 
 						draggable={true}
 						onDragStart={({set}) => {
-							set(selectedBlock.attributes[`${deviceType}Frame`].translate);
+							set(getDeviceFrame({
+								attributes: selectedBlock && selectedBlock.attributes,
+								deviceType,
+							}).translate);
 						}}
 						onDrag={ ({ beforeTranslate }) => {
-							const newFrame = JSON.parse(JSON.stringify(selectedBlock.attributes[`${deviceType}Frame`]));
+							const newFrame = JSON.parse(JSON.stringify(getDeviceFrame({
+								attributes: selectedBlock && selectedBlock.attributes,
+								deviceType,
+							})));
 							newFrame.translate = beforeTranslate;
 							dispatch(updateBlockAttributes(selectedBlock.clientId, {
 								[`${deviceType}Frame`]: newFrame,
@@ -166,10 +185,16 @@ registerBlockType( 'hyper/hyperblock', {
 							const cssWidth = parseFloat(style.width);
 							const cssHeight = parseFloat(style.height);
 							set([cssWidth, cssHeight]);
-							dragStart && dragStart.set(selectedBlock.attributes[`${deviceType}Frame`].translate);
+							dragStart && dragStart.set(getDeviceFrame({
+								attributes: selectedBlock && selectedBlock.attributes,
+								deviceType,
+							}).translate);
 						}}
 						onResize={({ width, height, drag }) => {
-							const newDesktopFrame = JSON.parse(JSON.stringify(selectedBlock.attributes[`${deviceType}Frame`]));
+							const newFrame = JSON.parse(JSON.stringify(getDeviceFrame({
+								attributes: selectedBlock && selectedBlock.attributes,
+								deviceType,
+							})));
 							newFrame.size = [ width, height ];
 							newFrame.translate = drag.beforeTranslate;
 							dispatch(updateBlockAttributes(selectedBlock.clientId, {
@@ -179,11 +204,20 @@ registerBlockType( 'hyper/hyperblock', {
 
 						scalable={sizingMode && sizingMode === 'scale'}
 						onScaleStart={ ({ set, dragStart }) => {
-							set(selectedBlock.attributes[`${deviceType}Frame`].scale);
-							dragStart && dragStart.set(selectedBlock.attributes[`${deviceType}Frame`].translate);
+							set(getDeviceFrame({
+								attributes: selectedBlock && selectedBlock.attributes,
+								deviceType,
+							}).scale);
+							dragStart && dragStart.set(sgetDeviceFrame({
+								attributes: selectedBlock && selectedBlock.attributes,
+								deviceType,
+							}).translate);
 						}}
 						onScale={ ({scale, drag}) => { 
-							const newFrame = JSON.parse(JSON.stringify(selectedBlock.attributes[`${deviceType}Frame`]));
+							const newFrame = JSON.parse(JSON.stringify(getDeviceFrame({
+								attributes: selectedBlock && selectedBlock.attributes,
+								deviceType,
+							})));
 							newFrame.scale = scale;
 							newFrame.translate = drag.beforeTranslate;
 							dispatch(updateBlockAttributes(selectedBlock.clientId, {
@@ -194,10 +228,16 @@ registerBlockType( 'hyper/hyperblock', {
 						rotatable={true}
 						throttleRotate={0}
 						onRotateStart={ ({set}) => {
-							set(selectedBlock.attributes[`${deviceType}Frame`].rotate);
+							set(getDeviceFrame({
+								attributes: selectedBlock && selectedBlock.attributes,
+								deviceType,
+							}).rotate);
 						}}
 						onRotate={ ({ beforeRotate }) => {
-							const newFrame = JSON.parse(JSON.stringify(selectedBlock.attributes[`${deviceType}Frame`]));
+							const newFrame = JSON.parse(JSON.stringify(getDeviceFrame({
+								attributes: selectedBlock && selectedBlock.attributes,
+								deviceType,
+							})));
 							newFrame.rotate = beforeRotate;
 							dispatch(updateBlockAttributes(selectedBlock.clientId, {
 								[`${deviceType}Frame`]: newFrame,
@@ -206,16 +246,32 @@ registerBlockType( 'hyper/hyperblock', {
 
 						warpable={sizingMode && sizingMode === 'warp'}
 						onWarpStart={({set}) => {
-							set(selectedBlock.attributes[`${deviceType}Frame`].warp);
+							set(getDeviceFrame({
+								attributes: selectedBlock && selectedBlock.attributes,
+								deviceType,
+							}).warp);
 						}}
 						onWarp={ ({matrix}) => {
-							const newFrame = JSON.parse(JSON.stringify(selectedBlock.attributes[`${deviceType}Frame`]));
+							const newFrame = JSON.parse(JSON.stringify(getDeviceFrame({
+								attributes: selectedBlock && selectedBlock.attributes,
+								deviceType,
+							})));
 							newFrame.warp = matrix;
 							dispatch(updateBlockAttributes(selectedBlock.clientId, {
 								[`${deviceType}Frame`]: newFrame,
 							}))
 						}}
 					/>
+					{ showGuides && (
+						<Fragment>
+							<div style={{height: '100%', width: '100%', position: 'absolute', top: 0, left: 0}}>
+								<div className="wp-block alignwide" style={{height: '100%', border: '1px solid green'}}/>
+							</div>
+							<div style={{height: '100%', width: '100%', position: 'absolute', top: 0, left: 0}}>
+								<div className="wp-block" style={{height: '100%', border: '1px solid red'}}/>
+							</div>
+						</Fragment>
+					)}
 					<div className="hyperblock__container">
 						<InnerBlocks
 							renderAppender={false}
