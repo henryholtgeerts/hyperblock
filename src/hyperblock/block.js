@@ -68,11 +68,16 @@ registerBlockType( 'hyper/hyperblock', {
 	 */
 	edit: ( props ) => {
 
+		console.log('props!!', props);
+
 		const {
 			attributes: { height },
 			setAttributes,
 			toggleSelection,
 		} = props;
+
+		const [ inlineAppenderCoordinates, setInlineAppenderCoordinates ] = useState(0, 0);
+		const [ isInlineAppenderVisible, setIsInlineAppenderVisible ] = useState(false);
 
 		const [ sizingMode, setSizingMode ] = useState('scale');
 
@@ -103,8 +108,10 @@ registerBlockType( 'hyper/hyperblock', {
 			const newInnerBlocks = innerBlocks.map((block) => {
 				if ( block.name !== 'hyper/hyperchild' ) {
 					needReplacing = true;
+					const blockWidth = document.querySelector(`.${props.className}`).getBoundingClientRect().width;
+					const defaultPosition = isInlineAppenderVisible ? [(inlineAppenderCoordinates[0] - ( blockWidth/2 )), inlineAppenderCoordinates[1]] : [0, (height/2)];
 					return createBlock('hyper/hyperchild', {
-						desktopFrame: getDefaultFrame(block),
+						desktopFrame: getDefaultFrame(block, defaultPosition),
 						tabletFrame: {},
 						mobileFrame: {}
 					}, [block]);
@@ -141,6 +148,26 @@ registerBlockType( 'hyper/hyperblock', {
 				window.removeEventListener('keypress', handleKeyPress);
 			}
 		}, [innerBlocks, selectedBlock])
+
+		useEffect(() => {
+			const blockNode = document.querySelector(`.${props.className}`);
+			if ( selectedBlock && selectedBlock.clientId !== props.clientId ) {
+				setIsInlineAppenderVisible(false);
+			}
+			const handleDblClick = (e) => {
+				setIsInlineAppenderVisible(true);
+				setInlineAppenderCoordinates([e.offsetX, e.offsetY]);
+			}
+			const handleClick = (e) => {
+				setIsInlineAppenderVisible(false);
+			}
+			blockNode.addEventListener('dblclick', handleDblClick);
+			blockNode.addEventListener('click', handleClick);
+			return function cleanup () {
+				blockNode.removeEventListener('dblclick', handleDblClick);
+				blockNode.removeEventListener('click', handleClick);
+			}
+		}, [props, selectedBlock])
 
 		const ALLOWED_BLOCKS = [ 'hyper/hyperchild' ];
 
@@ -303,6 +330,30 @@ registerBlockType( 'hyper/hyperblock', {
 						toggleSelection( false );
 					} }
 				>
+				{ isInlineAppenderVisible && (
+					<div
+						style={{
+							position: 'absolute',
+							width: '35px',
+							height: '35px',
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							border: '1px solid black',
+							borderRadius: '50%',
+							left: `${(inlineAppenderCoordinates[0] - 17)}px`,
+							top: `${(inlineAppenderCoordinates[1] - 17)}px`,
+						}}
+					>
+						<Inserter
+							rootClientId={ props.clientId }
+							renderAppender={({onToggle}) => {
+								onToggle();
+							}}
+							isAppender
+						/>
+					</div>
+				)}
 					<div className={ props.className } style={{height: `${height}px`}}>
 						{ showGuides && (
 							<Fragment>

@@ -39,7 +39,7 @@ export const getDeviceStyle = ({attributes, deviceType}) => {
     ), '');
 }
 
-export const getDefaultFrame = (block) => {
+export const getDefaultFrame = (block, defaultPosition) => {
 
     const { name, attributes } = block;
     const childRect = document.querySelector(`[data-block="${block.clientId}`).getBoundingClientRect();
@@ -47,7 +47,7 @@ export const getDefaultFrame = (block) => {
 
     const frame = {
         size: null,
-        translate: [0, (parentRect.height / 2) - (childRect.height / 2)],
+        translate: [defaultPosition[0], (defaultPosition[1]) - (childRect.height / 2)],
         scale: [1, 1],
         rotate: 0,
         warp: [
@@ -65,14 +65,14 @@ export const getDefaultFrame = (block) => {
                     return {
                         ...frame,
                         size: [560, null],
-                        translate: [-280, (parentRect.height / 2) - (202 / 2)]
+                        translate: [(defaultPosition[0] - 280), (defaultPosition[1]) - (202 / 2)]
                     }
                 }
                 default: {
                     return {
                         ...frame,
                         size: [400, null],
-                        translate: [-200, (parentRect.height / 2) - (202 / 2)]
+                        translate: [(defaultPosition[0] - 200), (defaultPosition[1]) - (202 / 2)]
                     }
                 }
             }
@@ -81,21 +81,21 @@ export const getDefaultFrame = (block) => {
             return {
                 ...frame,
                 size: [400, null],
-                translate: [-200, (parentRect.height / 2) - (childRect.height / 2)]
+                translate: [(defaultPosition[0] - 200), (defaultPosition[1]) - (childRect.height / 2)]
             }
         }
         case 'core/media-text': {
             return {
                 ...frame,
                 size: [660, null],
-                translate: [-330, (parentRect.height/ 2) - (260 / 2)]
+                translate: [(defaultPosition[0] - 330), (defaultPosition[1]) - (260 / 2)]
             }
         }
         case 'core/table': {
             return {
                 ...frame,
                 size: [380, null],
-                translate: [-165, (parentRect.height/ 2) - (200 / 2)]
+                translate: [(defaultPosition[0] - 165), (defaultPosition[1]) - (200 / 2)]
             }
         }
         default: {
