@@ -15,7 +15,7 @@ import './style.scss';
 const { __ } = wp.i18n; // Import __() from wp.i18n
 const { registerBlockType, createBlock } = wp.blocks; // Import registerBlockType() from wp.blocks
 const { Inserter, InnerBlocks, useBlockProps, BlockControls, InspectorControls } = wp.blockEditor;
-const { ToolbarButton, Panel, PanelBody, PanelRow, ToggleControl } = wp.components;
+const { ToolbarButton, Panel, PanelBody, PanelRow, ToggleControl, ResizableBox } = wp.components;
 const { useDispatch, useSelect } = wp.data;
 const { useEffect, useState, Fragment, useCallback } = wp.element;
 
@@ -48,6 +48,12 @@ registerBlockType( 'hyper/hyperblock', {
 			'wide'
 		]
 	},
+	attributes: {
+		height: {
+			type: 'number',
+			default: 500,
+		}
+	},
 
 	/**
 	 * The edit function describes the structure of your block in the context of the editor.
@@ -61,6 +67,12 @@ registerBlockType( 'hyper/hyperblock', {
 	 * @returns {Mixed} JSX Component.
 	 */
 	edit: ( props ) => {
+
+		const {
+			attributes: { height },
+			setAttributes,
+			toggleSelection,
+		} = props;
 
 		const [ sizingMode, setSizingMode ] = useState('scale');
 
@@ -159,129 +171,156 @@ registerBlockType( 'hyper/hyperblock', {
 						isAppender
 					/>
 				</BlockControls>
-				<div className={ props.className }>
-					<Moveable
-						target={innerBlocks.includes(selectedBlock) && document.querySelector(`[data-block="${selectedBlock.clientId}"] > div`)}
-						container={document.querySelector(`[data-block="${props.clientId}"] > div`)}
+				<Moveable
+					target={innerBlocks.includes(selectedBlock) && document.querySelector(`[data-block="${selectedBlock.clientId}"] > div`)}
+					container={document.querySelector(`[data-block="${props.clientId}"] > div`)}
 
-						draggable={true}
-						onDragStart={({set}) => {
-							set(getDeviceFrame({
-								attributes: selectedBlock && selectedBlock.attributes,
-								deviceType,
-							}).translate);
-						}}
-						onDrag={ ({ beforeTranslate }) => {
-							const newFrame = JSON.parse(JSON.stringify(getDeviceFrame({
-								attributes: selectedBlock && selectedBlock.attributes,
-								deviceType,
-							})));
-							newFrame.translate = beforeTranslate;
-							dispatch(updateBlockAttributes(selectedBlock.clientId, {
-								[`${deviceType}Frame`]: newFrame,
-							}))
-						}}
+					draggable={true}
+					onDragStart={({set}) => {
+						set(getDeviceFrame({
+							attributes: selectedBlock && selectedBlock.attributes,
+							deviceType,
+						}).translate);
+					}}
+					onDrag={ ({ beforeTranslate }) => {
+						const newFrame = JSON.parse(JSON.stringify(getDeviceFrame({
+							attributes: selectedBlock && selectedBlock.attributes,
+							deviceType,
+						})));
+						newFrame.translate = beforeTranslate;
+						dispatch(updateBlockAttributes(selectedBlock.clientId, {
+							[`${deviceType}Frame`]: newFrame,
+						}))
+					}}
 
-						resizable={sizingMode && sizingMode === 'resize'}
-						onResizeStart={({target, set, setOrigin, dragStart}) => {
-							setOrigin(["%", "%"]);
-							const style = window.getComputedStyle(target);
-							const cssWidth = parseFloat(style.width);
-							const cssHeight = parseFloat(style.height);
-							set([cssWidth, cssHeight]);
-							dragStart && dragStart.set(getDeviceFrame({
-								attributes: selectedBlock && selectedBlock.attributes,
-								deviceType,
-							}).translate);
-						}}
-						onResize={({ width, height, drag }) => {
-							const newFrame = JSON.parse(JSON.stringify(getDeviceFrame({
-								attributes: selectedBlock && selectedBlock.attributes,
-								deviceType,
-							})));
-							newFrame.size = [ width, height ];
-							newFrame.translate = drag.beforeTranslate;
-							dispatch(updateBlockAttributes(selectedBlock.clientId, {
-								[`${deviceType}Frame`]: newFrame,
-							}))
-						}}
+					resizable={sizingMode && sizingMode === 'resize'}
+					onResizeStart={({target, set, setOrigin, dragStart}) => {
+						setOrigin(["%", "%"]);
+						const style = window.getComputedStyle(target);
+						const cssWidth = parseFloat(style.width);
+						const cssHeight = parseFloat(style.height);
+						set([cssWidth, cssHeight]);
+						dragStart && dragStart.set(getDeviceFrame({
+							attributes: selectedBlock && selectedBlock.attributes,
+							deviceType,
+						}).translate);
+					}}
+					onResize={({ width, height, drag }) => {
+						const newFrame = JSON.parse(JSON.stringify(getDeviceFrame({
+							attributes: selectedBlock && selectedBlock.attributes,
+							deviceType,
+						})));
+						newFrame.size = [ width, height ];
+						newFrame.translate = drag.beforeTranslate;
+						dispatch(updateBlockAttributes(selectedBlock.clientId, {
+							[`${deviceType}Frame`]: newFrame,
+						}))
+					}}
 
-						scalable={sizingMode && sizingMode === 'scale'}
-						onScaleStart={ ({ set, dragStart }) => {
-							set(getDeviceFrame({
-								attributes: selectedBlock && selectedBlock.attributes,
-								deviceType,
-							}).scale);
-							dragStart && dragStart.set(getDeviceFrame({
-								attributes: selectedBlock && selectedBlock.attributes,
-								deviceType,
-							}).translate);
-						}}
-						onScale={ ({scale, drag}) => { 
-							const newFrame = JSON.parse(JSON.stringify(getDeviceFrame({
-								attributes: selectedBlock && selectedBlock.attributes,
-								deviceType,
-							})));
-							newFrame.scale = scale;
-							newFrame.translate = drag.beforeTranslate;
-							dispatch(updateBlockAttributes(selectedBlock.clientId, {
-								[`${deviceType}Frame`]: newFrame,
-							}))
-						}}
+					scalable={sizingMode && sizingMode === 'scale'}
+					onScaleStart={ ({ set, dragStart }) => {
+						set(getDeviceFrame({
+							attributes: selectedBlock && selectedBlock.attributes,
+							deviceType,
+						}).scale);
+						dragStart && dragStart.set(getDeviceFrame({
+							attributes: selectedBlock && selectedBlock.attributes,
+							deviceType,
+						}).translate);
+					}}
+					onScale={ ({scale, drag}) => { 
+						const newFrame = JSON.parse(JSON.stringify(getDeviceFrame({
+							attributes: selectedBlock && selectedBlock.attributes,
+							deviceType,
+						})));
+						newFrame.scale = scale;
+						newFrame.translate = drag.beforeTranslate;
+						dispatch(updateBlockAttributes(selectedBlock.clientId, {
+							[`${deviceType}Frame`]: newFrame,
+						}))
+					}}
 
-						rotatable={true}
-						throttleRotate={0}
-						onRotateStart={ ({set}) => {
-							set(getDeviceFrame({
-								attributes: selectedBlock && selectedBlock.attributes,
-								deviceType,
-							}).rotate);
-						}}
-						onRotate={ ({ beforeRotate }) => {
-							const newFrame = JSON.parse(JSON.stringify(getDeviceFrame({
-								attributes: selectedBlock && selectedBlock.attributes,
-								deviceType,
-							})));
-							newFrame.rotate = beforeRotate;
-							dispatch(updateBlockAttributes(selectedBlock.clientId, {
-								[`${deviceType}Frame`]: newFrame,
-							}))
-						}}
+					rotatable={true}
+					throttleRotate={0}
+					onRotateStart={ ({set}) => {
+						set(getDeviceFrame({
+							attributes: selectedBlock && selectedBlock.attributes,
+							deviceType,
+						}).rotate);
+					}}
+					onRotate={ ({ beforeRotate }) => {
+						const newFrame = JSON.parse(JSON.stringify(getDeviceFrame({
+							attributes: selectedBlock && selectedBlock.attributes,
+							deviceType,
+						})));
+						newFrame.rotate = beforeRotate;
+						dispatch(updateBlockAttributes(selectedBlock.clientId, {
+							[`${deviceType}Frame`]: newFrame,
+						}))
+					}}
 
-						warpable={sizingMode && sizingMode === 'warp'}
-						onWarpStart={({set}) => {
-							set(getDeviceFrame({
-								attributes: selectedBlock && selectedBlock.attributes,
-								deviceType,
-							}).warp);
-						}}
-						onWarp={ ({matrix}) => {
-							const newFrame = JSON.parse(JSON.stringify(getDeviceFrame({
-								attributes: selectedBlock && selectedBlock.attributes,
-								deviceType,
-							})));
-							newFrame.warp = matrix;
-							dispatch(updateBlockAttributes(selectedBlock.clientId, {
-								[`${deviceType}Frame`]: newFrame,
-							}))
-						}}
-					/>
-					{ showGuides && (
-						<Fragment>
-							<div style={{height: '100%', width: '100%', position: 'absolute', top: 0, left: 0}}>
-								<div className="wp-block alignwide" style={{height: '100%', border: '1px solid green'}}/>
-							</div>
-							<div style={{height: '100%', width: '100%', position: 'absolute', top: 0, left: 0}}>
-								<div className="wp-block" style={{height: '100%', border: '1px solid red'}}/>
-							</div>
-						</Fragment>
-					)}
-					<div className="hyperblock__container">
-						<InnerBlocks
-							renderAppender={false}
-						/>
+					warpable={sizingMode && sizingMode === 'warp'}
+					onWarpStart={({set}) => {
+						set(getDeviceFrame({
+							attributes: selectedBlock && selectedBlock.attributes,
+							deviceType,
+						}).warp);
+					}}
+					onWarp={ ({matrix}) => {
+						const newFrame = JSON.parse(JSON.stringify(getDeviceFrame({
+							attributes: selectedBlock && selectedBlock.attributes,
+							deviceType,
+						})));
+						newFrame.warp = matrix;
+						dispatch(updateBlockAttributes(selectedBlock.clientId, {
+							[`${deviceType}Frame`]: newFrame,
+						}))
+					}}
+				/>
+				<ResizableBox
+					size={ {
+						height,
+					} }
+					minHeight="50"
+					minWidth="50"
+					enable={ {
+						top: false,
+						right: false,
+						bottom: true,
+						left: false,
+						topRight: false,
+						bottomRight: false,
+						bottomLeft: false,
+						topLeft: false,
+					} }
+					onResizeStop={ ( event, direction, elt, delta ) => {
+						setAttributes( {
+							height: parseInt( height + delta.height, 10 ),
+						} );
+						toggleSelection( true );
+					} }
+					onResizeStart={ () => {
+						toggleSelection( false );
+					} }
+				>
+					<div className={ props.className } style={{height: `${height}px`}}>
+						{ showGuides && (
+							<Fragment>
+								<div style={{height: '100%', width: '100%', position: 'absolute', top: 0, left: 0}}>
+									<div className="wp-block alignwide" style={{height: '100%', border: '1px solid green'}}/>
+								</div>
+								<div style={{height: '100%', width: '100%', position: 'absolute', top: 0, left: 0}}>
+									<div className="wp-block" style={{height: '100%', border: '1px solid red'}}/>
+								</div>
+							</Fragment>
+						)}
+						<div className="hyperblock__container">
+							<InnerBlocks
+								renderAppender={false}
+							/>
+						</div>
 					</div>
-				</div>
+				</ResizableBox>
 			</Fragment>
 		);
 	},
@@ -298,8 +337,14 @@ registerBlockType( 'hyper/hyperblock', {
 	 * @returns {Mixed} JSX Frontend HTML.
 	 */
 	save: ( props ) => {
+
+		const { 
+			attributes: { height },
+			className
+		} = props;
+
 		return (
-			<div className={ props.className }>
+			<div className={ className } style={{height: `${height}px`}}>
 				<div className="hyperblock__container">
 					<InnerBlocks.Content/>
 				</div>
