@@ -349,7 +349,10 @@ registerBlockType( 'hyper/hyperblock', {
 							rootClientId={ props.clientId }
 							renderToggle={({onToggle}) => {
 								return (
-									<div style={{width: '35px', height: '35px'}} 
+									<div style={{
+										width: '35px', 
+										height: '35px',
+									}} 
 										onMouseEnter={() => { 
 											if ( document.querySelector('.block-editor-inserter__menu') === null ) {
 												onToggle();
