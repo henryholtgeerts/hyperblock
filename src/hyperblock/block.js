@@ -347,8 +347,16 @@ registerBlockType( 'hyper/hyperblock', {
 					>
 						<Inserter
 							rootClientId={ props.clientId }
-							renderAppender={({onToggle}) => {
-								onToggle();
+							renderToggle={({onToggle}) => {
+								return (
+									<div style={{width: '35px', height: '35px'}} 
+										onMouseEnter={() => { 
+											if ( document.querySelector('.block-editor-inserter__menu') === null ) {
+												onToggle();
+											}
+										}} 
+									/>
+								)
 							}}
 							isAppender
 						/>
