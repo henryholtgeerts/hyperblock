@@ -52,6 +52,26 @@ registerBlockType( 'hyper/hyperblock', {
 		height: {
 			type: 'number',
 			default: 500,
+		}, 
+		cropped: {
+			type: 'boolean',
+			default: true,
+		},
+		showBorder: {
+			type: 'boolean',
+			default: true,
+		},
+		borderWidth: {
+			type: 'number',
+			default: 1,
+		},
+		borderColor: {
+			type: 'string',
+			default: '#000'
+		},
+		borderRadius: {
+			type: 'number',
+			default: 0,
 		}
 	},
 
@@ -68,10 +88,8 @@ registerBlockType( 'hyper/hyperblock', {
 	 */
 	edit: ( props ) => {
 
-		console.log('props!!', props);
-
 		const {
-			attributes: { height },
+			attributes: { height, cropped, showBorder, borderWidth, borderColor, borderRadius },
 			setAttributes,
 			toggleSelection,
 		} = props;
@@ -171,10 +189,53 @@ registerBlockType( 'hyper/hyperblock', {
 
 		const ALLOWED_BLOCKS = [ 'hyper/hyperchild' ];
 
+		const getBorderRule = () => {
+			return showBorder ? '1px solid #000' : 'none';
+		}
+
+		const layersEls = innerBlocks.map((block, index) => {
+			console.log('block!!', block.innerBlocks[0]);
+			return (
+				<PanelRow>
+					<div style={{width: '100%', display: 'flex', alignItmes: 'center', justifyContent: 'space-between'}}>
+						<div>
+							{block.innerBlocks[0] ? block.innerBlocks[0].name : block.name}
+						</div>
+						<div>
+							{index}
+						</div>
+					</div>
+				</PanelRow>
+			)
+		})
+
 		return (
 			<Fragment>
 				<InspectorControls key="settting">
-					<PanelBody title="Appearance" icon="microphone" initialOpen={ true }>
+					<PanelBody title="Layers" initialOpen={ true }>
+						{layersEls}
+					</PanelBody>
+					<PanelBody title="Appearance" initialOpen={ true }>
+						<PanelRow>
+							<ToggleControl
+								label="Crop Edges"
+								checked={ cropped }
+								onChange={ (val) => setAttributes({
+									cropped: val
+								}) }
+							/>
+						</PanelRow>
+						<PanelRow>
+							<ToggleControl
+								label="Show Border"
+								checked={ showBorder }
+								onChange={ (val) => setAttributes({
+									showBorder: val
+								}) }
+							/>
+						</PanelRow>
+					</PanelBody>
+					<PanelBody title="Workspace" initialOpen={ true }>
 						<PanelRow>
 							<ToggleControl
 								label="Show Guides"
@@ -198,7 +259,32 @@ registerBlockType( 'hyper/hyperblock', {
 						isAppender
 					/>
 				</BlockControls>
-				<Moveable
+				<ResizableBox
+					size={ {
+						height,
+					} }
+					minHeight="50"
+					enable={ {
+						top: false,
+						right: false,
+						bottom: true,
+						left: false,
+						topRight: false,
+						bottomRight: false,
+						bottomLeft: false,
+						topLeft: false,
+					} }
+					onResizeStop={ ( event, direction, elt, delta ) => {
+						setAttributes( {
+							height: parseInt( height + delta.height, 10 ),
+						} );
+						toggleSelection( true );
+					} }
+					onResizeStart={ () => {
+						toggleSelection( false );
+					} }
+				>
+					<Moveable
 					target={innerBlocks.includes(selectedBlock) && document.querySelector(`[data-block="${selectedBlock.clientId}"] > div`)}
 					container={document.querySelector(`[data-block="${props.clientId}"] > div`)}
 
@@ -304,32 +390,6 @@ registerBlockType( 'hyper/hyperblock', {
 						}))
 					}}
 				/>
-				<ResizableBox
-					size={ {
-						height,
-					} }
-					minHeight="50"
-					minWidth="50"
-					enable={ {
-						top: false,
-						right: false,
-						bottom: true,
-						left: false,
-						topRight: false,
-						bottomRight: false,
-						bottomLeft: false,
-						topLeft: false,
-					} }
-					onResizeStop={ ( event, direction, elt, delta ) => {
-						setAttributes( {
-							height: parseInt( height + delta.height, 10 ),
-						} );
-						toggleSelection( true );
-					} }
-					onResizeStart={ () => {
-						toggleSelection( false );
-					} }
-				>
 				{ isInlineAppenderVisible && (
 					<div
 						style={{
@@ -365,7 +425,7 @@ registerBlockType( 'hyper/hyperblock', {
 						/>
 					</div>
 				)}
-					<div className={ props.className } style={{height: `${height}px`}}>
+					<div className={ props.className } style={{height: `${height}px`, overflow: cropped ? 'hidden' : 'visible', border: getBorderRule()}}>
 						{ showGuides && (
 							<Fragment>
 								<div style={{height: '100%', width: '100%', position: 'absolute', top: 0, left: 0}}>
@@ -401,12 +461,16 @@ registerBlockType( 'hyper/hyperblock', {
 	save: ( props ) => {
 
 		const { 
-			attributes: { height },
+			attributes: { height, cropped, showBorder },
 			className
 		} = props;
 
+		const getBorderRule = () => {
+			return showBorder ? '1px solid #000' : 'none';
+		}
+
 		return (
-			<div className={ className } style={{height: `${height}px`}}>
+			<div className={ className } style={{height: `${height}px`, overflow: cropped ? 'hidden' : 'visible', border: getBorderRule()}}>
 				<div className="hyperblock__container">
 					<InnerBlocks.Content/>
 				</div>

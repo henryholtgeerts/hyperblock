@@ -27,6 +27,7 @@ export const getDeviceCssObject = ({attributes, deviceType}) => {
     const { size, translate, rotate, scale, warp } = getDeviceFrame({deviceType, attributes});
     return {
         width: size && size[0] && `${size[0]}px`,
+        maxWidth: size && size[0] && '9999px',
         height: size && size[1] && `${size[1]}px`,
         transform: `translate(${translate[0]}px, ${translate[1]}px) rotate(${rotate}deg) scale(${scale[0]}, ${scale[1]}) matrix3d(${warp.join(",")})`
     }
