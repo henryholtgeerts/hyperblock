@@ -14,8 +14,9 @@ import './style.scss';
 const { __ } = wp.i18n; // Import __() from wp.i18n
 const { registerBlockType, createBlock } = wp.blocks; // Import registerBlockType() from wp.blocks
 const { Inserter, InnerBlocks, useBlockProps, BlockControls, InspectorControls } = wp.blockEditor;
+const { Panel, PanelBody, PanelRow, TextControl } = wp.components;
 const { useDispatch, useSelect } = wp.data;
-const { useEffect, useRef, useState } = wp.element;
+const { useEffect, useRef, useState, Fragment } = wp.element;
 
 /**
  * Register: aa Gutenberg Block.
@@ -41,6 +42,10 @@ registerBlockType( 'hyper/hyperchild', {
 		__( 'hyperchild' ),
 	],
 	attributes: {
+		layerName: {
+			type: 'string',
+			default: 'New Layer',
+		},
 		desktopFrame: {
 			type: 'object',
 			default: {
@@ -79,7 +84,7 @@ registerBlockType( 'hyper/hyperchild', {
 	 */
 	edit: ( props ) => {
 
-		const { attributes } = props;
+		const { attributes, setAttributes } = props;
 
 		const dispatch = useDispatch();
 
@@ -105,22 +110,35 @@ registerBlockType( 'hyper/hyperchild', {
 		}, [overlayRef, innerBlocks]);
 
 		return (
-			<div className={ props.className } style={getDeviceCssObject({deviceType, attributes})}>
-				<div 
-					className="hyper-hyperchild__overlay" 
-					ref={overlayRef} 
-					style={{
-						display: innerBlocks && selectedBlock && innerBlocks[0] && innerBlocks[0].clientId == selectedBlock.clientId ? 'none' : 'block'
-					}} 
-				/>
-				<InnerBlocks
-					style={{
-						padding: 0, 
-						margin: 0
-					}}
-					renderAppender={false}
-				/>
-			</div>
+			<Fragment>
+				<InspectorControls>
+					<PanelBody title="Workspace" initialOpen={ true }>
+						<PanelRow>
+							<TextControl
+								label="Layer Name"
+								value={ attributes.layerName }
+								onChange={ ( val ) => setAttributes( { layerName: val } ) }
+							/>
+						</PanelRow>
+					</PanelBody>
+				</InspectorControls>
+				<div className={ props.className } style={getDeviceCssObject({deviceType, attributes})}>
+					<div 
+						className="hyper-hyperchild__overlay" 
+						ref={overlayRef} 
+						style={{
+							display: innerBlocks && selectedBlock && innerBlocks[0] && innerBlocks[0].clientId == selectedBlock.clientId ? 'none' : 'block'
+						}} 
+					/>
+					<InnerBlocks
+						style={{
+							padding: 0, 
+							margin: 0
+						}}
+						renderAppender={false}
+					/>
+				</div>
+			</Fragment>
 		);
 	},
 

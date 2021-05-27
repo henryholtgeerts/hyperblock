@@ -14,7 +14,7 @@ import './editor.scss';
 import './style.scss';
 
 const { __ } = wp.i18n; // Import __() from wp.i18n
-const { registerBlockType, createBlock } = wp.blocks; // Import registerBlockType() from wp.blocks
+const { registerBlockType, createBlock, getBlockType } = wp.blocks; // Import registerBlockType() from wp.blocks
 const { Inserter, InnerBlocks, useBlockProps, BlockControls, InspectorControls } = wp.blockEditor;
 const { ToolbarButton, Panel, PanelBody, PanelRow, ToggleControl, ResizableBox } = wp.components;
 const { useDispatch, useSelect } = wp.data;
@@ -194,64 +194,27 @@ registerBlockType( 'hyper/hyperblock', {
 			return showBorder ? '1px solid #000' : 'none';
 		}
 
-		const layersEls = innerBlocks.map((block, index) => {
-			return (
-				<PanelRow>
-					<div style={{width: '100%', display: 'flex', alignItmes: 'center', justifyContent: 'space-between'}}>
-						<div>
-							{block.innerBlocks[0] ? block.innerBlocks[0].name : block.name}
-						</div>
-						<div>
-							{index}
-						</div>
-					</div>
-				</PanelRow>
-			)
-		}).reverse();
-
 		const grid = 8;
 
 		const getItemStyle = (isDragging, draggableStyle) => ({
 			// some basic styles to make the items look a bit nicer
 			userSelect: "none",
 			padding: grid * 2,
+			border: '1px solid #e0e0e0',
+			borderRadius: '4px',
 			margin: `0 0 ${grid}px 0`,
 		  
 			// change background colour if dragging
-			background: isDragging ? "lightgreen" : "grey",
+			background: isDragging ? '#f0f0f0' : 'none',
 		  
 			// styles we need to apply on draggables
 			...draggableStyle
-		  });
-		  
-		  const getListStyle = isDraggingOver => ({
-			background: isDraggingOver ? "lightblue" : "lightgrey",
-			padding: grid,
-			width: 250
 		});
 
 		const reorder = (list, startIndex, endIndex) => {
-
-			console.log({
-				list,
-				startIndex: list.length - startIndex,
-				endIndex: list.length - endIndex,
-			});
-
 			const result = Array.from(list);
 			const [removed] = result.splice(list.length - startIndex, 1);
 			result.splice(list.length - endIndex, 0, removed);
-
-			console.log({
-				result,
-				removed
-			});
-
-			// const result = Array.from(list);
-			// const element = list[startIndex];
-			// result.splice(result.length - startIndex - 1, 1);
-			// result.splice(result.length - endIndex - 1, 0, element);
-		  
 			return result;
 		};
 
@@ -271,7 +234,7 @@ registerBlockType( 'hyper/hyperblock', {
 								result.destination.index
 							);
 
-							dispatch(replaceInnerBlocks(props.clientId, items));
+							replaceInnerBlocks(props.clientId, items);
 
 						}}>
 							<Droppable droppableId="droppable">
@@ -279,7 +242,6 @@ registerBlockType( 'hyper/hyperblock', {
 								<div
 								{...provided.droppableProps}
 								ref={provided.innerRef}
-								style={getListStyle(snapshot.isDraggingOver)}
 								>
 								{innerBlocks.map((block, index) => (
 									<Draggable key={block.clientId} draggableId={block.clientId} index={innerBlocks.length - index}>
@@ -293,12 +255,19 @@ registerBlockType( 'hyper/hyperblock', {
 											provided.draggableProps.style
 										)}
 										>
-										<div>
-											Layer {index + 1}
-										</div>
-										<div>
-											{block.innerBlocks[0] ? block.innerBlocks[0].name : block.name}
-										</div>
+											<div>
+												<div style={{size: '16px', fontWeight: '600'}}>
+													{block.attributes.layerName}
+												</div>
+												<div style={{size: '8px', opacity: '0.6'}}>
+													{block.innerBlocks[0] ? getBlockType(block.innerBlocks[0].name).title : getBlockType(block.name).title}
+												</div>
+											</div>
+											<div>
+												<div onClick={() => {
+
+												}}>Edit</div>
+											</div>
 										</div>
 									)}
 									</Draggable>
