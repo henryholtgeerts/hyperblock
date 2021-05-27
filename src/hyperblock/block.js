@@ -7,6 +7,7 @@
 
  import { getDeviceFrame, getDefaultFrame } from '../utils';
  import Moveable from 'react-moveable';
+ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 //  Import CSS.
 import './editor.scss';
@@ -194,7 +195,6 @@ registerBlockType( 'hyper/hyperblock', {
 		}
 
 		const layersEls = innerBlocks.map((block, index) => {
-			console.log('block!!', block.innerBlocks[0]);
 			return (
 				<PanelRow>
 					<div style={{width: '100%', display: 'flex', alignItmes: 'center', justifyContent: 'space-between'}}>
@@ -207,13 +207,107 @@ registerBlockType( 'hyper/hyperblock', {
 					</div>
 				</PanelRow>
 			)
-		})
+		}).reverse();
+
+		const grid = 8;
+
+		const getItemStyle = (isDragging, draggableStyle) => ({
+			// some basic styles to make the items look a bit nicer
+			userSelect: "none",
+			padding: grid * 2,
+			margin: `0 0 ${grid}px 0`,
+		  
+			// change background colour if dragging
+			background: isDragging ? "lightgreen" : "grey",
+		  
+			// styles we need to apply on draggables
+			...draggableStyle
+		  });
+		  
+		  const getListStyle = isDraggingOver => ({
+			background: isDraggingOver ? "lightblue" : "lightgrey",
+			padding: grid,
+			width: 250
+		});
+
+		const reorder = (list, startIndex, endIndex) => {
+
+			console.log({
+				list,
+				startIndex: list.length - startIndex,
+				endIndex: list.length - endIndex,
+			});
+
+			const result = Array.from(list);
+			const [removed] = result.splice(list.length - startIndex, 1);
+			result.splice(list.length - endIndex, 0, removed);
+
+			console.log({
+				result,
+				removed
+			});
+
+			// const result = Array.from(list);
+			// const element = list[startIndex];
+			// result.splice(result.length - startIndex - 1, 1);
+			// result.splice(result.length - endIndex - 1, 0, element);
+		  
+			return result;
+		};
 
 		return (
 			<Fragment>
 				<InspectorControls key="settting">
 					<PanelBody title="Layers" initialOpen={ true }>
-						{layersEls}
+						<DragDropContext onDragEnd={(result) => {
+
+							if (!result.destination) {
+								return;
+							}
+						
+							const items = reorder(
+								innerBlocks,
+								result.source.index,
+								result.destination.index
+							);
+
+							dispatch(replaceInnerBlocks(props.clientId, items));
+
+						}}>
+							<Droppable droppableId="droppable">
+							{(provided, snapshot) => (
+								<div
+								{...provided.droppableProps}
+								ref={provided.innerRef}
+								style={getListStyle(snapshot.isDraggingOver)}
+								>
+								{innerBlocks.map((block, index) => (
+									<Draggable key={block.clientId} draggableId={block.clientId} index={innerBlocks.length - index}>
+									{(provided, snapshot) => (
+										<div
+										ref={provided.innerRef}
+										{...provided.draggableProps}
+										{...provided.dragHandleProps}
+										style={getItemStyle(
+											snapshot.isDragging,
+											provided.draggableProps.style
+										)}
+										>
+										<div>
+											Layer {index + 1}
+										</div>
+										<div>
+											{block.innerBlocks[0] ? block.innerBlocks[0].name : block.name}
+										</div>
+										</div>
+									)}
+									</Draggable>
+								)).reverse()}
+								{provided.placeholder}
+								</div>
+							)}
+							</Droppable>
+						</DragDropContext>
 					</PanelBody>
 					<PanelBody title="Appearance" initialOpen={ true }>
 						<PanelRow>
