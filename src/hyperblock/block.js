@@ -304,6 +304,9 @@ registerBlockType( 'hyper/hyperblock', {
 								{ label: 'Theme Font', value: ' inherit' },
 								{ label: 'Times', value: ' "Times New Roman", Times, serif' },
 								{ label: 'Arial', value: ' Arial, Helvetica, sans-serif' },
+								{ label: 'Helvetica', value: ' Helvetica, Arial, sans-serif' },
+								{ label: 'Georgia', value: ' Georgia, Garamond, Times, serif' },
+								{ label: 'Courier', value: '"Courier New", monospace' }
 							] }
 							onChange={ ( val ) => {
 								setAttributes({
