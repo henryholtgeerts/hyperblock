@@ -112,7 +112,7 @@ registerBlockType( 'hyper/hyperchild', {
 		return (
 			<Fragment>
 				<InspectorControls>
-					<PanelBody title="Workspace" initialOpen={ true }>
+					<PanelBody title="Layer" initialOpen={ true }>
 						<PanelRow>
 							<TextControl
 								label="Layer Name"

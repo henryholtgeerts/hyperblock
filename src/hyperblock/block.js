@@ -9,6 +9,8 @@
  import Moveable from 'react-moveable';
  import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
+import ColorControl from '../components/color-control';
+
 //  Import CSS.
 import './editor.scss';
 import './style.scss';
@@ -16,9 +18,9 @@ import './style.scss';
 const { __ } = wp.i18n; // Import __() from wp.i18n
 const { registerBlockType, createBlock, getBlockType } = wp.blocks; // Import registerBlockType() from wp.blocks
 const { Inserter, InnerBlocks, useBlockProps, BlockControls, InspectorControls } = wp.blockEditor;
-const { ToolbarButton, Panel, PanelBody, PanelRow, ToggleControl, ResizableBox } = wp.components;
+const { ToolbarButton, Panel, PanelBody, PanelRow, ToggleControl, ResizableBox, Button, ColorPicker, SelectControl } = wp.components;
 const { useDispatch, useSelect } = wp.data;
-const { useEffect, useState, Fragment, useCallback } = wp.element;
+const { useEffect, useState, Fragment, useCallback, useRef } = wp.element;
 
 /**
  * Register: aa Gutenberg Block.
@@ -73,6 +75,14 @@ registerBlockType( 'hyper/hyperblock', {
 		borderRadius: {
 			type: 'number',
 			default: 0,
+		},
+		backgroundColor: {
+			type: 'string',
+			default: '',
+		},
+		fontFamily: {
+			type: 'stying',
+			default: ' inherit',
 		}
 	},
 
@@ -90,7 +100,7 @@ registerBlockType( 'hyper/hyperblock', {
 	edit: ( props ) => {
 
 		const {
-			attributes: { height, cropped, showBorder, borderWidth, borderColor, borderRadius },
+			attributes: { height, cropped, showBorder, borderWidth, borderColor, borderRadius, backgroundColor, fontFamily },
 			setAttributes,
 			toggleSelection,
 		} = props;
@@ -104,7 +114,7 @@ registerBlockType( 'hyper/hyperblock', {
 
 		const [ showGuides, setShowGuides ] = useState(false);
 
-		const { replaceInnerBlocks, updateBlockAttributes } = useDispatch("core/block-editor");
+		const { replaceInnerBlocks, updateBlockAttributes, selectBlock, removeBlock } = useDispatch("core/block-editor");
 
 		const dispatch = useDispatch();
 
@@ -203,9 +213,13 @@ registerBlockType( 'hyper/hyperblock', {
 			border: '1px solid #e0e0e0',
 			borderRadius: '4px',
 			margin: `0 0 ${grid}px 0`,
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+			boxShadow:'0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
 		  
 			// change background colour if dragging
-			background: isDragging ? '#f0f0f0' : 'none',
+			background: isDragging ? '#f9f9f9' : 'none',
 		  
 			// styles we need to apply on draggables
 			...draggableStyle
@@ -263,10 +277,13 @@ registerBlockType( 'hyper/hyperblock', {
 													{block.innerBlocks[0] ? getBlockType(block.innerBlocks[0].name).title : getBlockType(block.name).title}
 												</div>
 											</div>
-											<div>
-												<div onClick={() => {
-
-												}}>Edit</div>
+											<div style={{display: 'flex'}}>
+												<Button className="hyperblock__layer-button" isDefault icon="edit" isSmall onClick={() => {
+													selectBlock(block.clientId);
+												}}/>
+												<Button className="hyperblock__layer-button" isDestructive icon="trash" isSmall onClick={() => {
+													removeBlock(block.clientId);
+												}}/>
 											</div>
 										</div>
 									)}
@@ -279,6 +296,22 @@ registerBlockType( 'hyper/hyperblock', {
 						</DragDropContext>
 					</PanelBody>
 					<PanelBody title="Appearance" initialOpen={ true }>
+						<PanelRow>
+						<SelectControl
+							label="Font Family"
+							value={ fontFamily }
+							options={ [
+								{ label: 'Theme Font', value: ' inherit' },
+								{ label: 'Times', value: ' "Times New Roman", Times, serif' },
+								{ label: 'Arial', value: ' Arial, Helvetica, sans-serif' },
+							] }
+							onChange={ ( val ) => {
+								setAttributes({
+									fontFamily: val,
+								})
+							} }
+						/>
+						</PanelRow>
 						<PanelRow>
 							<ToggleControl
 								label="Crop Edges"
@@ -295,6 +328,18 @@ registerBlockType( 'hyper/hyperblock', {
 								onChange={ (val) => setAttributes({
 									showBorder: val
 								}) }
+							/>
+						</PanelRow>
+						<PanelRow>
+							<ColorControl
+								label="Background Color"
+								value={backgroundColor}
+								colors={[
+									{ name: 'red', color: '#f00' },
+									{ name: 'white', color: '#fff' },
+									{ name: 'blue', color: '#00f' },
+								]}
+								onChange={(val) => setAttributes({backgroundColor: val ? val : ''})}
 							/>
 						</PanelRow>
 					</PanelBody>
@@ -488,7 +533,15 @@ registerBlockType( 'hyper/hyperblock', {
 						/>
 					</div>
 				)}
-					<div className={ props.className } style={{height: `${height}px`, overflow: cropped ? 'hidden' : 'visible', border: getBorderRule()}}>
+					<div 
+						className={ props.className } 
+						style={{
+							height: `${height}px`, 
+							overflow: cropped ? 'hidden' : 'visible', 
+							border: getBorderRule(), backgroundColor: 
+							backgroundColor, 
+							'--hyperblock-font': fontFamily,
+						}}>
 						{ showGuides && (
 							<Fragment>
 								<div style={{height: '100%', width: '100%', position: 'absolute', top: 0, left: 0}}>
@@ -524,7 +577,7 @@ registerBlockType( 'hyper/hyperblock', {
 	save: ( props ) => {
 
 		const { 
-			attributes: { height, cropped, showBorder },
+			attributes: { height, cropped, showBorder, backgroundColor, fontFamily },
 			className
 		} = props;
 
@@ -533,7 +586,15 @@ registerBlockType( 'hyper/hyperblock', {
 		}
 
 		return (
-			<div className={ className } style={{height: `${height}px`, overflow: cropped ? 'hidden' : 'visible', border: getBorderRule()}}>
+			<div 
+				className={ className } 
+				style={{
+					height: `${height}px`, 
+					overflow: cropped ? 'hidden' : 'visible', 
+					border: getBorderRule(), 
+					backgroundColor,
+					'--hyperblock-font': fontFamily,
+				}}>
 				<div className="hyperblock__container">
 					<InnerBlocks.Content/>
 				</div>
